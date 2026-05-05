@@ -1,0 +1,53 @@
+---
+title: "BaseProvider interface reference"
+description: "Reference for the abstract baseProvider class that all FinConnect provider implementations must extend, defining the core payment methods."
+sidebarTitle: "Base Provider"
+---
+
+`baseProvider` is the abstract base class that all FinConnect providers extend. It defines the contract each provider must implement. You interact with providers through `FintechSDK`, but understanding the interface helps when reading provider-specific docs.
+
+## Interface definition
+
+```typescript
+abstract class baseProvider {
+  abstract authenticate(): Promise<string>;
+  abstract initiateUssdPushRequest(params: { payload: any; ipnId?: string }): Promise<any>;
+  async registerIpn(ipnUrl: string, ipnNotificationType: "GET" | "POST"): Promise<any>;
+}
+```
+
+## Methods
+
+| Method | Abstract | Description |
+|---|---|---|
+| `authenticate()` | Yes | Fetches an auth token from the provider. Called automatically before each request — you do not need to call it yourself. |
+| `initiateUssdPushRequest()` | Yes | Sends the USSD push payment request. Called by `FintechSDK.pay()`. |
+| `registerIpn()` | No | Registers an IPN URL with the provider. The base implementation throws — providers override this when supported. |
+
+### `authenticate()`
+
+```typescript
+abstract authenticate(): Promise<string>
+```
+
+Fetches a valid auth token from the provider API. The token is used in the `Authorization` header for subsequent requests. Each provider implements its own auth mechanism — PesaPal uses OAuth2 bearer tokens; ClickPesa uses JWT.
+
+### `initiateUssdPushRequest()`
+
+```typescript
+abstract initiateUssdPushRequest(params: { payload: any; ipnId?: string }): Promise<any>
+```
+
+Sends the USSD push payment request to the provider. The exact shape of `payload` and how `ipnId` is used depends on the provider implementation.
+
+### `registerIpn()`
+
+```typescript
+async registerIpn(ipnUrl: string, ipnNotificationType: "GET" | "POST"): Promise<any>
+```
+
+The base implementation always throws `"IPN registration not supported by this provider"`. Providers that support IPN registration (currently only PesaPal) override this method.
+
+<Note>
+  ClickPesa does not override `registerIpn()`, so calling `sdk.registerIpn()` with a ClickPesa instance throws `"IPN registration not supported by this provider"`.
+</Note>

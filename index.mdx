@@ -1,0 +1,56 @@
+---
+title: "FinConnect: East African Payments in One SDK"
+description: "FinConnect is a TypeScript SDK that unifies PesaPal and ClickPesa under one API, handling OAuth2 and JWT auth for East African mobile payment processing."
+---
+
+FinConnect gives you a single, unified interface for processing payments across multiple East African fintech platforms. Instead of learning each provider's authentication flow, payload structure, and error handling separately, you write one integration and FinConnect handles the rest.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="bolt" href="/quickstart">
+    Install FinConnect and process your first payment in minutes.
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Set up your provider credentials and environment settings.
+  </Card>
+  <Card title="PesaPal Guide" icon="credit-card" href="/guides/pesapal">
+    Accept payments via PesaPal with OAuth2 authentication.
+  </Card>
+  <Card title="ClickPesa Guide" icon="money-bill-wave" href="/guides/clickpesa">
+    Initiate USSD push payments through ClickPesa with JWT auth.
+  </Card>
+  <Card title="IPN & Webhooks" icon="webhook" href="/guides/ipn-webhooks">
+    Register IPN endpoints to receive real-time payment notifications.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/fintech-sdk">
+    Full reference for the FintechSDK class and all provider methods.
+  </Card>
+</CardGroup>
+
+## How it works
+
+<Steps>
+  <Step title="Install the SDK">
+    Add FinConnect to your Node.js project via npm.
+  </Step>
+  <Step title="Configure your provider">
+    Set your provider credentials (PesaPal, ClickPesa) in environment variables.
+  </Step>
+  <Step title="Initialize FintechSDK">
+    Create an instance with your chosen provider and config, using `ProviderFactory` under the hood.
+  </Step>
+  <Step title="Process payments">
+    Call `sdk.pay()` with the payment details. FinConnect authenticates, formats, and routes the request to the provider automatically.
+  </Step>
+</Steps>
+
+## Supported providers
+
+| Provider | Auth Method | Region | Status |
+|----------|-------------|--------|--------|
+| **PesaPal** | OAuth2 (Bearer token) | East Africa | Available |
+| **ClickPesa** | JWT | East Africa | Available |
+| **AzamPay** | Bearer/Secret | Tanzania | Planned |
+
+<Note>
+  All API calls are made over HTTPS. Never hard-code credentials — use environment variables as shown in the [Configuration](/configuration) guide.
+</Note>

@@ -1,0 +1,88 @@
+---
+title: "Set up IPN webhooks for payment notifications"
+description: "Register an IPN URL with PesaPal through FinConnect, set up an Express handler to receive payment notifications, and connect the ipnId to your pay() calls."
+sidebarTitle: "IPN & Webhooks"
+---
+
+Instant Payment Notifications (IPNs) allow FinConnect-powered apps to receive real-time payment status updates from the provider. When a customer completes or fails a payment, the provider sends an HTTP request to your registered IPN URL so your server can update the order status immediately.
+
+<Note>
+  Currently, only PesaPal supports IPN registration via FinConnect. Calling `registerIpn()` on a ClickPesa SDK instance will throw an error: `"IPN registration not supported by this provider"`.
+</Note>
+
+## Register an IPN URL
+
+Call `sdk.registerIpn()` with your publicly accessible callback URL and the notification type (`GET` or `POST`). The method authenticates with PesaPal, registers the URL, and returns an `ipnId`.
+
+```typescript
+// Register with GET notification type
+const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+
+// Or POST notification type
+const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'POST');
+```
+
+The returned `ipnId` is stored by PesaPal and used to identify your notification endpoint. You must pass it to every subsequent `pay()` call.
+
+## Set up your IPN handler
+
+Your IPN handler must respond with HTTP `200` quickly. PesaPal sends `OrderTrackingId`, `OrderMerchantReference`, and `OrderNotificationType` as query parameters for GET-type notifications.
+
+```typescript
+import express from 'express';
+const app = express();
+app.use(express.json());
+
+// GET-based IPN handler
+app.get('/ipn', (req, res) => {
+  const { OrderTrackingId, OrderMerchantReference, OrderNotificationType } = req.query;
+
+  // Verify payment status using OrderTrackingId
+  console.log('IPN received:', { OrderTrackingId, OrderMerchantReference });
+
+  res.status(200).send('OK');
+});
+```
+
+<Tip>
+  Use a dedicated `/ipn` route and return `200` as quickly as possible. Perform any database updates or downstream API calls asynchronously so the response is not delayed.
+</Tip>
+
+<Warning>
+  Your IPN URL must be publicly accessible — PesaPal cannot reach `localhost`. Use a tunneling service such as [ngrok](https://ngrok.com) during local development to expose your server to the internet.
+</Warning>
+
+## Connect IPN registration to payments
+
+The full flow is: register the IPN URL, capture the returned `ipnId`, then pass it to `pay()`. FinConnect merges the `ipnId` into the request payload as `notification_id` automatically.
+
+```typescript
+import { FintechSDK, ProviderType } from 'finconnect';
+
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: process.env.PESAPAL_BASE_URL!,
+    PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+    PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+  }
+});
+
+// Step 1: Register your IPN URL
+const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+
+// Step 2: Pass ipnId to pay()
+const result = await sdk.pay({
+  id: 'ORD-2024-001',
+  currency: 'KES',
+  amount: 1500,
+  description: 'Order #2024-001',
+  callback_url: 'https://yourapp.com/callback',
+  billing_address: {
+    email_address: 'customer@example.com',
+    phone_number: '254712345678',
+    first_name: 'Jane',
+    last_name: 'Doe',
+  }
+}, ipnId);
+```

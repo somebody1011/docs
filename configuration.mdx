@@ -1,0 +1,98 @@
+---
+title: "Configure FinConnect for your environment"
+description: "Set up PesaPal and ClickPesa credentials in FinConnect using environment variables, and switch between sandbox and production with one config change."
+sidebarTitle: "Configuration"
+---
+
+FinConnect reads provider credentials from the config object you pass at initialization. There is no global config file — each `FintechSDK` instance is scoped to one provider and one set of credentials. Use environment variables to keep credentials out of your source code.
+
+<Tip>
+  Install the `dotenv` package (`npm install dotenv`) and call `require('dotenv').config()` (or `import 'dotenv/config'`) at the top of your entry file to load `.env` values into `process.env` automatically.
+</Tip>
+
+## Environment variables
+
+Add a `.env` file to your project root with the variables for the providers you use:
+
+```env
+# PesaPal
+PESAPAL_BASE_URL=https://cybqa.pesapal.com/pesapalv3
+PESAPAL_CONSUMER_KEY=your_consumer_key
+PESAPAL_CONSUMER_SECRET=your_consumer_secret
+
+# ClickPesa
+CLICKPESA_BASE_URL=https://api.clickpesa.com
+CLICKPESA_CLIENT_ID=your_client_id
+CLICKPESA_API_KEY=your_api_key
+```
+
+Add `.env` to your `.gitignore` so credentials are never committed to version control.
+
+## PesaPal configuration
+
+Pass these fields in the `config` object when initializing with `ProviderType.pesapal`:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `baseUrl` | `string` | Yes | Base URL for the PesaPal API. Use the sandbox URL during development and the production URL when going live. |
+| `PESAPAL_CONSUMER_KEY` | `string` | Yes | Your PesaPal consumer key, obtained from the PesaPal merchant portal. |
+| `PESAPAL_CONSUMER_SECRET` | `string` | Yes | Your PesaPal consumer secret, obtained from the PesaPal merchant portal. |
+
+```typescript
+import { FintechSDK, ProviderType } from 'finconnect';
+
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: process.env.PESAPAL_BASE_URL!,
+    PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+    PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+  }
+});
+```
+
+## ClickPesa configuration
+
+Pass these fields in the `config` object when initializing with `ProviderType.clickpesa`:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `baseUrl` | `string` | Yes | Base URL for the ClickPesa API. |
+| `CLICKPESA_CLIENT_ID` | `string` | Yes | Your ClickPesa client ID, used as the `client-id` header during authentication. |
+| `CLICKPESA_API_KEY` | `string` | Yes | Your ClickPesa API key, used as the `api-key` header during authentication. |
+
+```typescript
+import { FintechSDK, ProviderType } from 'finconnect';
+
+const sdk = new FintechSDK({
+  provider: ProviderType.clickpesa,
+  config: {
+    baseUrl: process.env.CLICKPESA_BASE_URL!,
+    CLICKPESA_CLIENT_ID: process.env.CLICKPESA_CLIENT_ID!,
+    CLICKPESA_API_KEY: process.env.CLICKPESA_API_KEY!,
+  }
+});
+```
+
+## Sandbox vs. production
+
+You switch between sandbox and production by changing `baseUrl`. No other code changes are needed.
+
+| Provider | Sandbox URL | Production URL |
+|----------|-------------|----------------|
+| PesaPal | `https://cybqa.pesapal.com/pesapalv3` | Provided by PesaPal on account approval |
+| ClickPesa | Provided by ClickPesa | Provided by ClickPesa |
+
+<Warning>
+  The SDK does not enforce which URL you use — passing a production URL in development will make real charges. Always verify your `baseUrl` before running payment flows.
+</Warning>
+
+## Validation
+
+`ProviderFactory` validates that all required config fields are present before instantiating a provider. If any field is missing, the constructor throws immediately with a descriptive error:
+
+```
+Error: Invalid configuration: Missing required fields for Pesapal.
+```
+
+This means misconfiguration fails fast at startup rather than at runtime during a payment request.

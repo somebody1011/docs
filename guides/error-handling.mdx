@@ -1,0 +1,88 @@
+---
+title: "Handle errors and troubleshoot FinConnect"
+description: "Learn how FinConnect surfaces provider errors and how to handle configuration failures, authentication errors, payment rejections, and unsupported operations."
+sidebarTitle: "Error Handling"
+---
+
+FinConnect wraps provider-specific errors into JavaScript `Error` objects with descriptive messages. All SDK methods are async and throw on failure — use `try/catch` to handle them gracefully in your application.
+
+## Error types
+
+| Error message | When it occurs |
+|---|---|
+| `"Invalid configuration: Missing required fields for Pesapal."` | `ProviderFactory` throws at construction time if `baseUrl`, `PESAPAL_CONSUMER_KEY`, or `PESAPAL_CONSUMER_SECRET` is missing. |
+| `"Invalid configuration: Missing required fields for Clickpesa."` | `ProviderFactory` throws at construction time if `baseUrl`, `CLICKPESA_CLIENT_ID`, or `CLICKPESA_API_KEY` is missing. |
+| `"Authentication failed: ..."` | The OAuth2 or JWT token request to the provider failed. Check your credentials and environment. |
+| `"Payment request failed: ..."` | The provider rejected the payment request. Check the payload format and field values. |
+| `"IPN registration failed: ..."` | PesaPal rejected the IPN registration request. Check the URL and notification type. |
+| `"Unsupported provider type: ..."` | An unrecognised string was passed as the `provider` option. Use `ProviderType` enum values. |
+| `"IPN registration not supported by this provider"` | `registerIpn()` was called on a ClickPesa instance. ClickPesa does not support IPN registration. |
+
+## Handling errors in your code
+
+Wrap SDK calls in a `try/catch` block and inspect `error.message` to determine the failure reason:
+
+```typescript
+try {
+  const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+  const result = await sdk.pay(paymentData, ipnId);
+  // handle success
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('Payment error:', error.message);
+    // Log and surface an appropriate message to the user
+  }
+}
+```
+
+<Tip>
+  Always validate your config before initializing `FintechSDK`. Missing required fields throw immediately at construction time — before any network request is made — so you can catch configuration problems early.
+</Tip>
+
+## Common issues
+
+<AccordionGroup>
+  <Accordion title="Missing required fields error">
+    The `ProviderFactory` validates that all required config keys are present before creating a provider. Make sure your config object includes all of the following:
+
+    - **PesaPal**: `baseUrl`, `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`
+    - **ClickPesa**: `baseUrl`, `CLICKPESA_CLIENT_ID`, `CLICKPESA_API_KEY`
+
+    Check that your `.env` file is loaded (e.g. `dotenv.config()` is called before constructing the SDK) and that none of the values are `undefined`.
+  </Accordion>
+
+  <Accordion title="Authentication failed">
+    The provider rejected the token request. Verify that:
+
+    - Your API credentials (consumer key/secret or client ID/API key) are correct.
+    - The `baseUrl` matches the environment you are targeting — sandbox credentials do not work against the production endpoint and vice versa.
+  </Accordion>
+
+  <Accordion title="Payment request failed">
+    The provider rejected the payment payload. Check that:
+
+    - All required fields for the provider are included and correctly named.
+    - Data types match what the provider expects (e.g. ClickPesa expects `amount` as a string).
+    - For PesaPal, `notification_id` is present — this is set automatically when you pass `ipnId` as the second argument to `pay()`.
+  </Accordion>
+
+  <Accordion title="IPN registration not supported">
+    You called `registerIpn()` on a ClickPesa SDK instance. ClickPesa does not support IPN registration. Remove the `registerIpn()` call from your ClickPesa integration and call `sdk.pay()` directly.
+  </Accordion>
+
+  <Accordion title="Unsupported provider type">
+    An unrecognised value was passed as the `provider` option. Use the `ProviderType` enum to avoid typos:
+
+    ```typescript
+    import { ProviderType } from 'finconnect';
+
+    // Correct
+    provider: ProviderType.pesapal
+    provider: ProviderType.clickpesa
+
+    // Incorrect — will throw "Unsupported provider type: ..."
+    provider: 'Pesapal'
+    provider: 'CLICKPESA'
+    ```
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,118 @@
+---
+title: "Secure your FinConnect integration"
+description: "Secure your FinConnect integration with environment-variable credentials, separate sandbox and production keys, input validation, and server-side error logging."
+sidebarTitle: "Best Practices"
+---
+
+Keeping payment integrations secure is critical. Follow these practices when using FinConnect in production to protect your API credentials and customer data.
+
+## Never hardcode credentials
+
+Hardcoding credentials directly in your source code exposes them to anyone who can read your codebase — including version control history. Always load credentials from environment variables at runtime.
+
+<CodeGroup>
+
+```typescript Bad — never do this
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: 'https://cybqa.pesapal.com/pesapalv3',
+    PESAPAL_CONSUMER_KEY: 'abc123',       // hardcoded!
+    PESAPAL_CONSUMER_SECRET: 'xyz789',    // hardcoded!
+  }
+});
+```
+
+```typescript Good — use environment variables
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: process.env.PESAPAL_BASE_URL!,
+    PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+    PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+  }
+});
+```
+
+</CodeGroup>
+
+<Warning>
+  Add `.env` to your `.gitignore`. Never commit credentials to version control.
+</Warning>
+
+## Use separate credentials per environment
+
+PesaPal and ClickPesa both provide sandbox environments for testing. Use sandbox credentials during development and a dedicated set of production credentials for live traffic. Mixing them risks processing real charges in test flows, or test requests hitting your live account.
+
+Keep a `.env.sandbox` and `.env.production` (both git-ignored) and load the appropriate one for each deployment.
+
+## FinConnect is server-side only
+
+Never run FinConnect in browser or client-side code. The SDK requires your provider credentials (`PESAPAL_CONSUMER_KEY`, `CLICKPESA_API_KEY`, etc.) to make authenticated requests. Bundling the SDK into a frontend application exposes those credentials to every visitor.
+
+Use FinConnect exclusively in:
+- Node.js API servers
+- Serverless functions (AWS Lambda, Vercel Edge Functions, etc.)
+- Backend workers
+
+## Avoid leaking error details
+
+FinConnect throws descriptive errors (`"Authentication failed: ..."`, `"Payment request failed: ..."`) that may include upstream API responses. These messages are useful for server-side logging but should never be forwarded directly to end users.
+
+```typescript
+try {
+  const result = await sdk.pay(payload, ipnId);
+  res.json({ success: true, data: result });
+} catch (error) {
+  // Log the full error internally
+  console.error('[FinConnect] Payment error:', error);
+
+  // Return a generic message to the client
+  res.status(500).json({
+    success: false,
+    message: 'Payment could not be processed. Please try again.',
+  });
+}
+```
+
+## Validate inputs before passing to the SDK
+
+The SDK passes your payload directly to the provider API. Validating inputs before calling `sdk.pay()` prevents malformed requests and reduces exposure to injection-style attacks.
+
+At a minimum, validate:
+- Phone number matches the expected format for the target country
+- Amount is a positive number greater than zero
+- Reference/order ID is non-empty
+
+```typescript
+if (!phoneNumber || !/^\d{10,15}$/.test(phoneNumber)) {
+  throw new Error('Invalid phone number format');
+}
+if (!amount || amount <= 0) {
+  throw new Error('Amount must be greater than zero');
+}
+if (!reference || reference.trim().length === 0) {
+  throw new Error('Payment reference is required');
+}
+
+await sdk.pay({ phoneNumber, amount, reference }, ipnId);
+```
+
+## HTTPS only
+
+All FinConnect requests to provider APIs are made over HTTPS. You must also ensure that your IPN and callback URLs are HTTPS in production — providers will reject or fail to deliver notifications to plain HTTP endpoints.
+
+<Note>
+  During local development you can use a tunnelling tool such as ngrok to expose a local HTTPS endpoint for testing IPN delivery.
+</Note>
+
+## Production deployment checklist
+
+Before going live, confirm all of the following:
+
+- [ ] All credentials are stored in environment variables
+- [ ] `.env` files are excluded from git (listed in `.gitignore`)
+- [ ] Separate credentials are configured for sandbox and production
+- [ ] IPN URL is HTTPS and publicly accessible
+- [ ] Errors are logged server-side and not exposed to end users
+- [ ] Input validation is in place before calling `sdk.pay()`

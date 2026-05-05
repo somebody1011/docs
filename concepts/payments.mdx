@@ -1,0 +1,107 @@
+---
+title: "How payment processing works in FinConnect"
+description: "Learn the USSD push payment lifecycle in FinConnect: how sdk.pay() works, per-provider payload differences, and how IPN notifications complete the flow."
+sidebarTitle: "Payments"
+---
+
+FinConnect initiates USSD push payments — the customer receives a prompt on their mobile device to authorize the payment. Your server submits the payment request to the provider; the provider then contacts the customer's phone to complete the transaction.
+
+## Payment flow
+
+<Steps>
+  <Step title="Your server calls sdk.pay()">
+    You call `sdk.pay(paymentData, ipnId)` with the payment details and (for PesaPal) the IPN ID returned from a prior `sdk.registerIpn()` call.
+  </Step>
+  <Step title="FinConnect authenticates with the provider">
+    The SDK fetches a fresh auth token from the provider using your configured credentials. See [Authentication](/concepts/authentication) for details.
+  </Step>
+  <Step title="Provider sends a USSD push notification">
+    The provider delivers a USSD prompt to the customer's mobile number included in the payment payload.
+  </Step>
+  <Step title="Customer enters their PIN to authorize">
+    The customer confirms the payment on their device by entering their mobile money PIN.
+  </Step>
+  <Step title="Provider sends an IPN notification">
+    The provider sends a payment status notification to your registered webhook URL (PesaPal only).
+  </Step>
+  <Step title="Your server processes the notification">
+    Your webhook handler receives the notification and confirms or rejects the order.
+  </Step>
+</Steps>
+
+## The sdk.pay() method
+
+```typescript
+await sdk.pay(paymentData: any, ipnId?: string): Promise<any>
+```
+
+The `ipnId` parameter behaves differently per provider:
+
+- **PesaPal** — `ipnId` is required. The SDK merges it into the payload as `notification_id` before submitting to `POST /api/Transactions/SubmitOrderRequest`.
+- **ClickPesa** — `ipnId` is ignored. The raw `paymentData` object is sent directly to `POST /third-parties/payments/initiate-ussd-push-request`.
+
+<Warning>
+  For PesaPal payments, you must register an IPN URL first and include the returned `ipnId`. Omitting it means PesaPal has nowhere to send payment status callbacks.
+</Warning>
+
+## Registering an IPN URL (PesaPal)
+
+Before you initiate a PesaPal payment, register your webhook URL to receive payment notifications:
+
+```typescript
+const ipnId = await sdk.registerIpn(
+  'https://yourdomain.com/webhooks/pesapal',
+  'POST'
+);
+```
+
+`registerIpn()` calls `POST /api/URLSetup/RegisterIPN` and returns an `ipn_id` string. Pass this value as the second argument to `sdk.pay()`.
+
+## Payment payload examples
+
+<Tabs>
+  <Tab title="PesaPal">
+    The SDK merges `notification_id` into your payload and posts it to `POST /api/Transactions/SubmitOrderRequest` with a `Bearer` token:
+
+    ```typescript
+    const ipnId = await sdk.registerIpn('https://yourdomain.com/webhooks/pesapal', 'POST');
+
+    const result = await sdk.pay(
+      {
+        id: 'ORDER-001',
+        currency: 'KES',
+        amount: 1500,
+        description: 'Payment for order ORDER-001',
+        callback_url: 'https://yourdomain.com/payments/callback',
+        billing_address: {
+          email_address: 'customer@example.com',
+          phone_number: '0712345678',
+          country_code: 'KE',
+          first_name: 'Jane',
+          last_name: 'Doe',
+        }
+      },
+      ipnId
+    );
+    ```
+
+    The final request body sent to PesaPal includes all fields above plus `notification_id: ipnId`.
+  </Tab>
+  <Tab title="ClickPesa">
+    The raw payload is sent directly to `POST /third-parties/payments/initiate-ussd-push-request` with the JWT in the `Authorization` header:
+
+    ```typescript
+    const result = await sdk.pay({
+      order_id: 'ORDER-001',
+      amount: '1500',
+      currency: 'TZS',
+      phone_number: '255712345678',
+      description: 'Payment for order ORDER-001',
+    });
+    ```
+
+    <Note>
+      ClickPesa does not support IPN registration. The `ipnId` argument is ignored and the base `registerIpn()` throws `"IPN registration not supported by this provider"`.
+    </Note>
+  </Tab>
+</Tabs>

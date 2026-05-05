@@ -1,0 +1,103 @@
+---
+title: "Authentication with FinConnect providers"
+description: "FinConnect handles OAuth2 token exchange for PesaPal and JWT generation for ClickPesa automatically, so you never need to manage authentication tokens manually."
+sidebarTitle: "Authentication"
+---
+
+FinConnect handles authentication automatically. When you call `sdk.pay()` or `sdk.registerIpn()`, the SDK authenticates with the provider using your credentials, retrieves a token, and attaches it to the request — you don't need to manage tokens manually.
+
+<Warning>
+  Never expose your API credentials in client-side code. FinConnect is a server-side SDK.
+</Warning>
+
+## PesaPal authentication
+
+PesaPal uses OAuth2. Before each request, the SDK calls `POST /api/Auth/RequestToken` with your consumer key and secret, then attaches the returned Bearer token to the `Authorization` header of the subsequent API call.
+
+**Credentials required:**
+
+| Credential | Config field |
+|---|---|
+| Consumer key | `PESAPAL_CONSUMER_KEY` |
+| Consumer secret | `PESAPAL_CONSUMER_SECRET` |
+
+**Token request:**
+
+```http
+POST {baseUrl}/api/Auth/RequestToken
+Content-Type: application/json
+Accept: application/json
+
+{
+  "consumer_key": "<PESAPAL_CONSUMER_KEY>",
+  "consumer_secret": "<PESAPAL_CONSUMER_SECRET>"
+}
+```
+
+The response contains a `token` field. Subsequent requests include:
+
+```http
+Authorization: Bearer <token>
+```
+
+<Note>
+  A fresh token is fetched on every `sdk.pay()` and `sdk.registerIpn()` call. The SDK does not cache tokens between calls.
+</Note>
+
+## ClickPesa authentication
+
+ClickPesa uses JWT. Before each payment request, the SDK calls `POST /third-parties/generate-token` with your client ID and API key passed as request headers. The returned JWT is attached directly to the `Authorization` header of the payment request (without a `Bearer` prefix).
+
+**Credentials required:**
+
+| Credential | Config field |
+|---|---|
+| Client ID | `CLICKPESA_CLIENT_ID` |
+| API key | `CLICKPESA_API_KEY` |
+
+**Token request:**
+
+```http
+POST {baseUrl}/third-parties/generate-token
+Content-Type: application/json
+client-id: <CLICKPESA_CLIENT_ID>
+api-key: <CLICKPESA_API_KEY>
+```
+
+The response contains a `token` field. Subsequent requests include:
+
+```http
+Authorization: <token>
+```
+
+## Loading credentials safely
+
+<Tip>
+  Store all credentials as environment variables and load them with `dotenv`.
+</Tip>
+
+```typescript
+import dotenv from 'dotenv';
+import { FintechSDK, ProviderType } from 'finconnect';
+
+dotenv.config();
+
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: process.env.PESAPAL_BASE_URL!,
+    PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+    PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+  }
+});
+```
+
+Your `.env` file should look like:
+
+```bash .env
+PESAPAL_BASE_URL=https://cybqa.pesapal.com/pesapalv3
+PESAPAL_CONSUMER_KEY=your_consumer_key
+PESAPAL_CONSUMER_SECRET=your_consumer_secret
+```
+
+Add `.env` to your `.gitignore` to keep credentials out of source control.

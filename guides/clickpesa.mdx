@@ -1,0 +1,68 @@
+---
+title: "Accept payments with ClickPesa"
+description: "Integrate ClickPesa USSD push payments with FinConnect in three steps: configure JWT credentials, initialize the SDK, and call sdk.pay() with your payload."
+sidebarTitle: "ClickPesa"
+---
+
+FinConnect's ClickPesa provider uses JWT authentication. Unlike PesaPal, ClickPesa does not require IPN registration before initiating payments — you can call `sdk.pay()` directly with the payment payload.
+
+## Prerequisites
+
+- A ClickPesa merchant account
+- A client ID and API key from the ClickPesa dashboard
+
+## Integration steps
+
+<Steps>
+  <Step title="Configure credentials">
+    Add the following environment variables to your `.env` file:
+
+    ```env
+    CLICKPESA_BASE_URL=https://api.clickpesa.com
+    CLICKPESA_CLIENT_ID=your_client_id
+    CLICKPESA_API_KEY=your_api_key
+    ```
+  </Step>
+
+  <Step title="Initialize the SDK">
+    Import `FintechSDK` and `ProviderType` from `finconnect`, then construct an instance using your credentials:
+
+    ```typescript
+    import { FintechSDK, ProviderType } from 'finconnect';
+    import dotenv from 'dotenv';
+    dotenv.config();
+
+    const sdk = new FintechSDK({
+      provider: ProviderType.clickpesa,
+      config: {
+        baseUrl: process.env.CLICKPESA_BASE_URL!,
+        CLICKPESA_CLIENT_ID: process.env.CLICKPESA_CLIENT_ID!,
+        CLICKPESA_API_KEY: process.env.CLICKPESA_API_KEY!,
+      }
+    });
+    ```
+  </Step>
+
+  <Step title="Initiate a USSD push payment">
+    Call `sdk.pay()` with the payment payload. ClickPesa accepts the raw payload directly — no `ipnId` is required.
+
+    ```typescript
+    const result = await sdk.pay({
+      amount: '2000',
+      currency: 'TZS',
+      phoneNumber: '255700000000',
+      reference: 'ORD-TZ-001',
+      description: 'Payment for order TZ-001'
+    });
+    console.log(result);
+    ```
+
+    <Note>
+      FinConnect automatically authenticates with ClickPesa via JWT before each payment call. Token management is handled internally — you do not need to call `authenticate()` yourself.
+    </Note>
+  </Step>
+</Steps>
+
+<Warning>
+  Calling `registerIpn()` with ClickPesa will throw an error — IPN registration is not supported by this provider. Remove any `registerIpn()` calls from your ClickPesa integration.
+</Warning>

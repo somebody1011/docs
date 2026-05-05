@@ -1,0 +1,81 @@
+---
+title: "PesapalProvider API reference"
+description: "Reference for PesapalProvider: OAuth2 token exchange via authenticate(), IPN registration via registerIpn(), and order submission via initiateUssdPushRequest()."
+sidebarTitle: "PesapalProvider"
+---
+
+`PesapalProvider` implements the FinConnect provider interface for PesaPal, handling OAuth2 token exchange, IPN registration, and order submission via PesaPal's v3 API.
+
+## `authenticate()`
+
+```typescript
+async authenticate(): Promise<string>
+```
+
+Exchanges your consumer key and secret for a Bearer token from PesaPal's auth endpoint. This is called automatically before each request — you do not need to call it directly.
+
+**Endpoint:** `POST {baseUrl}/api/Auth/RequestToken`
+
+**Request body:**
+```json
+{
+  "consumer_key": "<PESAPAL_CONSUMER_KEY>",
+  "consumer_secret": "<PESAPAL_CONSUMER_SECRET>"
+}
+```
+
+**Returns:** Bearer token string (`response.data.token`).
+
+**Throws:** `"Authentication failed: ..."` if the request fails.
+
+---
+
+## `registerIpn()`
+
+```typescript
+async registerIpn(ipnUrl: string, ipnNotificationType: "GET" | "POST"): Promise<any>
+```
+
+Registers an IPN URL with PesaPal. Call this once at startup via `FintechSDK.registerIpn()` and store the returned ID.
+
+**Endpoint:** `POST {baseUrl}/api/URLSetup/RegisterIPN`
+
+**Request body:**
+```json
+{
+  "url": "<ipnUrl>",
+  "ipn_notification_type": "<ipnNotificationType>"
+}
+```
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Returns:** The `ipn_id` string from PesaPal's response. Pass this as `ipnId` when calling `sdk.pay()`.
+
+**Throws:** `"IPN registration failed: ..."` if the request fails.
+
+---
+
+## `initiateUssdPushRequest()`
+
+```typescript
+async initiateUssdPushRequest({ payload, ipnId }: { payload: any; ipnId?: string }): Promise<any>
+```
+
+Submits a payment order to PesaPal. The `ipnId` is merged into the payload as `notification_id` before the request is sent.
+
+**Endpoint:** `POST {baseUrl}/api/Transactions/SubmitOrderRequest`
+
+**Effective request body:** `{ ...payload, notification_id: ipnId }`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Returns:** PesaPal order response object.
+
+**Throws:** `"Payment request failed: ..."` if the request fails.
+
+---
+
+<Note>
+  Use `FintechSDK.pay()` and `FintechSDK.registerIpn()` rather than calling `PesapalProvider` methods directly. `FintechSDK` handles payload normalisation and provider selection for you.
+</Note>

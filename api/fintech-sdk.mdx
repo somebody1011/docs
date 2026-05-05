@@ -1,0 +1,126 @@
+---
+title: "FintechSDK class reference"
+description: "Complete reference for FintechSDK: constructor options, the pay() method for USSD push payments, and registerIpn() for webhook registration with PesaPal."
+sidebarTitle: "FintechSDK"
+---
+
+`FintechSDK` is the main class you interact with. It wraps a provider instance created by `ProviderFactory` and exposes the two core methods: `pay()` and `registerIpn()`.
+
+## Constructor
+
+```typescript
+new FintechSDK(options: { provider: ProviderType | string; config: any })
+```
+
+<ParamField body="provider" type="ProviderType | string" required>
+  The provider to use. Use `ProviderType` enum values: `ProviderType.pesapal` or `ProviderType.clickpesa`. String values (`"pesapal"`, `"clickpesa"`) are also accepted and matched case-insensitively.
+</ParamField>
+
+<ParamField body="config" type="object" required>
+  Provider-specific configuration object. Must include `baseUrl` and the required credentials for the chosen provider. See [ProviderFactory](/api/provider-factory) for the full list of required fields per provider.
+</ParamField>
+
+**Throws:** `"Invalid configuration: Missing required fields for [Provider]"` if any required config fields are absent.
+
+```typescript
+import { FintechSDK, ProviderType } from 'finconnect';
+
+const sdk = new FintechSDK({
+  provider: ProviderType.pesapal,
+  config: {
+    baseUrl: process.env.PESAPAL_BASE_URL!,
+    PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+    PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+  }
+});
+```
+
+---
+
+## `sdk.pay()`
+
+```typescript
+async pay(data: any, ipnId?: string): Promise<any>
+```
+
+Initiates a USSD push payment. For PesaPal, the `ipnId` is merged into the payload as `notification_id`. For ClickPesa, `data` is sent directly without modification.
+
+<ParamField body="data" type="any" required>
+  Payment payload. The required fields depend on the provider — see the provider-specific guides for payload structure.
+</ParamField>
+
+<ParamField body="ipnId" type="string">
+  IPN ID returned by `registerIpn()`. Required for PesaPal payments. Not used by ClickPesa.
+</ParamField>
+
+**Returns:** Provider response object. Shape varies by provider.
+
+**Throws:** `"Payment request failed: ..."` on error.
+
+<Tabs>
+  <Tab title="PesaPal">
+    ```typescript
+    // Register IPN once (e.g. at startup) and reuse the ID
+    const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+
+    const result = await sdk.pay(
+      {
+        id: 'ORDER-001',
+        currency: 'KES',
+        amount: 1500,
+        description: 'Order payment',
+        callback_url: 'https://yourapp.com/callback',
+        billing_address: {
+          phone_number: '0712345678',
+        },
+      },
+      ipnId
+    );
+
+    console.log(result);
+    ```
+  </Tab>
+  <Tab title="ClickPesa">
+    ```typescript
+    const result = await sdk.pay({
+      amount: '1500',
+      currency: 'TZS',
+      externalId: 'ORDER-001',
+      phoneNumber: '255712345678',
+    });
+
+    console.log(result);
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## `sdk.registerIpn()`
+
+```typescript
+async registerIpn(ipnUrl: string, ipnNotificationType: "GET" | "POST"): Promise<any>
+```
+
+Registers an IPN (Instant Payment Notification) URL with the provider. Currently only supported by PesaPal — calling this method with a ClickPesa instance throws an error.
+
+<ParamField body="ipnUrl" type="string" required>
+  Publicly accessible URL that the provider will call when a payment status changes. Must be HTTPS in production.
+</ParamField>
+
+<ParamField body="ipnNotificationType" type='"GET" | "POST"' required>
+  HTTP method the provider uses when delivering notifications. Defaults to `"GET"` in `FintechSDK`.
+</ParamField>
+
+**Returns:** The `ipn_id` string returned by PesaPal. Pass this value as the second argument to `sdk.pay()`.
+
+**Throws:** `"IPN registration not supported by this provider"` when called with a ClickPesa instance.
+
+```typescript
+const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+// ipnId -> "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
+
+<Tip>
+  Register your IPN URL once at application startup and store the returned `ipnId`. You do not need to re-register on every payment request.
+</Tip>

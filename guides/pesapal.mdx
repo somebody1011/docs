@@ -1,0 +1,104 @@
+---
+title: "Accept payments with PesaPal"
+description: "Walk through a complete PesaPal integration with FinConnect: configure OAuth2 credentials, register an IPN URL, submit a payment order, and handle the callback."
+sidebarTitle: "PesaPal"
+---
+
+FinConnect's PesaPal provider uses OAuth2 authentication. Before accepting payments, you need to register an IPN (Instant Payment Notification) URL so PesaPal can notify your server when a payment completes.
+
+## Prerequisites
+
+- A PesaPal merchant account
+- A consumer key and consumer secret from the PesaPal dashboard
+- A publicly accessible server URL for IPN notifications
+
+## Integration steps
+
+<Steps>
+  <Step title="Install and configure credentials">
+    Add the following environment variables to your `.env` file:
+
+    ```env
+    PESAPAL_BASE_URL=https://cybqa.pesapal.com/pesapalv3
+    PESAPAL_CONSUMER_KEY=your_consumer_key
+    PESAPAL_CONSUMER_SECRET=your_consumer_secret
+    ```
+
+    The sandbox base URL is `https://cybqa.pesapal.com/pesapalv3`. You will swap this for the production URL when going live.
+  </Step>
+
+  <Step title="Initialize the SDK">
+    Import `FintechSDK` and `ProviderType` from `finconnect`, then construct an instance using your credentials:
+
+    ```typescript
+    import { FintechSDK, ProviderType } from 'finconnect';
+    import dotenv from 'dotenv';
+    dotenv.config();
+
+    const sdk = new FintechSDK({
+      provider: ProviderType.pesapal,
+      config: {
+        baseUrl: process.env.PESAPAL_BASE_URL!,
+        PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+        PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+      }
+    });
+    ```
+  </Step>
+
+  <Step title="Register your IPN URL">
+    You must register your IPN URL before submitting a payment order. `registerIpn` authenticates with PesaPal and returns an `ipnId` that you pass to subsequent `pay()` calls.
+
+    ```typescript
+    const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+    console.log('IPN registered:', ipnId);
+    ```
+
+    <Note>
+      The `ipnId` returned by `registerIpn` is passed both in the payload as `notification_id` and as the second argument to `pay()`. FinConnect handles merging it into the request automatically.
+    </Note>
+  </Step>
+
+  <Step title="Submit a payment order">
+    Call `sdk.pay()` with the order payload and the `ipnId` from the previous step:
+
+    ```typescript
+    const result = await sdk.pay({
+      id: 'ORD-2024-001',
+      currency: 'KES',
+      amount: 1500,
+      description: 'Order #2024-001',
+      callback_url: 'https://yourapp.com/callback',
+      notification_id: ipnId,
+      billing_address: {
+        email_address: 'customer@example.com',
+        phone_number: '254712345678',
+        first_name: 'Jane',
+        last_name: 'Doe',
+      }
+    }, ipnId);
+    console.log(result);
+    ```
+  </Step>
+
+  <Step title="Handle the IPN callback">
+    Set up an Express route to receive payment notifications from PesaPal. The route must be reachable at the URL you registered in step 3.
+
+    ```typescript
+    app.get('/ipn', async (req, res) => {
+      const ipnData = req.query; // or req.body for POST
+      console.log('IPN received:', ipnData);
+      // Verify and update your order status here
+      res.status(200).send('OK');
+    });
+    ```
+
+    PesaPal sends the `OrderTrackingId`, `OrderMerchantReference`, and `OrderNotificationType` as query parameters for GET-type IPNs. Use these to look up and update the corresponding order in your system.
+  </Step>
+</Steps>
+
+## Sandbox vs. production
+
+<Tip>
+  When you are ready to go live, update `PESAPAL_BASE_URL` in your environment to the PesaPal production endpoint. No other code changes are required.
+</Tip>

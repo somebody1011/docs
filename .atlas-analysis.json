@@ -1,0 +1,67 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "FinConnect",
+  "projectDescription": "A lightweight, provider-agnostic TypeScript SDK for unified payment processing across East African fintech platforms including PesaPal and ClickPesa.",
+  "theme": "luma",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "configuration"]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": ["concepts/providers", "concepts/authentication", "concepts/payments"]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/pesapal", "guides/clickpesa", "guides/ipn-webhooks", "guides/error-handling"]
+          },
+          {
+            "group": "Security",
+            "pages": ["security/best-practices"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "SDK",
+            "pages": ["api/fintech-sdk", "api/provider-factory", "api/base-provider"]
+          },
+          {
+            "group": "Providers",
+            "pages": ["api/pesapal-provider", "api/clickpesa-provider"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Provider-agnostic unified API for multiple East African payment platforms",
+    "Supports PesaPal (OAuth2) and ClickPesa (JWT) authentication flows",
+    "IPN (Instant Payment Notification) registration and webhook handling",
+    "Full TypeScript support with type-safe interfaces",
+    "USSD push payment initiation across providers",
+    "Secure provider validation via factory pattern"
+  ],
+  "publicApiSurface": [
+    "FintechSDK class",
+    "ProviderFactory.createProvider()",
+    "FintechSDK.pay()",
+    "FintechSDK.registerIpn()",
+    "PesapalProvider.authenticate()",
+    "PesapalProvider.registerIpn()",
+    "PesapalProvider.initiateUssdPushRequest()",
+    "ClickpesaProvider.authenticate()",
+    "ClickpesaProvider.initiateUssdPushRequest()",
+    "ProviderType enum (clickpesa, pesapal)"
+  ]
+}

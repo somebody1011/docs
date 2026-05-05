@@ -1,0 +1,62 @@
+---
+title: "ClickpesaProvider API reference"
+description: "Reference for ClickpesaProvider: JWT token generation via authenticate() and USSD push payment initiation via initiateUssdPushRequest() for ClickPesa."
+sidebarTitle: "ClickpesaProvider"
+---
+
+`ClickpesaProvider` implements the FinConnect provider interface for ClickPesa, handling JWT token generation and USSD push payment initiation via ClickPesa's third-party API.
+
+## `authenticate()`
+
+```typescript
+async authenticate(): Promise<string>
+```
+
+Generates a JWT token from ClickPesa's token endpoint using your client ID and API key. This is called automatically before each payment request — you do not need to call it directly.
+
+**Endpoint:** `POST {baseUrl}/third-parties/generate-token`
+
+**Headers:**
+```
+client-id: <CLICKPESA_CLIENT_ID>
+api-key: <CLICKPESA_API_KEY>
+Content-Type: application/json
+```
+
+**Request body:** `{}` (empty)
+
+**Returns:** JWT token string (`response.data.token`).
+
+**Throws:** `"Authentication failed: ..."` if the request fails.
+
+---
+
+## `initiateUssdPushRequest()`
+
+```typescript
+async initiateUssdPushRequest(payload: any): Promise<any>
+```
+
+Sends a USSD push payment request to ClickPesa with the raw payload. Unlike PesaPal, no payload transformation is applied — the object you pass to `sdk.pay()` is sent directly.
+
+**Endpoint:** `POST {baseUrl}/third-parties/payments/initiate-ussd-push-request`
+
+**Request body:** The raw `payload` object.
+
+**Headers:** `Authorization: <token>`
+
+**Returns:** ClickPesa payment response object.
+
+**Throws:** `"Payment request failed: ..."` if the request fails.
+
+---
+
+## `registerIpn()`
+
+Inherited from `baseProvider`. Always throws `"IPN registration not supported by this provider"`. ClickPesa does not support IPN registration through this SDK.
+
+---
+
+<Note>
+  Use `FintechSDK.pay()` rather than calling `ClickpesaProvider` directly. Token generation and request normalisation are handled internally.
+</Note>

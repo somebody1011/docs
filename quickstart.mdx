@@ -1,0 +1,104 @@
+---
+title: "Get started with FinConnect"
+description: "Install FinConnect, set up your PesaPal credentials, register an IPN URL, and submit your first payment order in under five minutes."
+sidebarTitle: "Quick Start"
+---
+
+By the end of this guide you will have FinConnect installed, a PesaPal provider configured, and a working payment flow that registers an IPN endpoint and submits an order.
+
+<Steps>
+  <Step title="Install">
+    Install FinConnect from npm:
+
+    ```bash
+    npm install finconnect
+    ```
+
+    Alternatively, clone the repository directly:
+
+    ```bash
+    git clone https://github.com/somebody1011/finconnect.git
+    cd finconnect
+    npm install
+    ```
+  </Step>
+
+  <Step title="Configure environment variables">
+    Create a `.env` file in your project root and add your provider credentials:
+
+    ```env
+    # PesaPal
+    PESAPAL_BASE_URL=https://cybqa.pesapal.com/pesapalv3
+    PESAPAL_CONSUMER_KEY=your_consumer_key
+    PESAPAL_CONSUMER_SECRET=your_consumer_secret
+
+    # ClickPesa
+    CLICKPESA_BASE_URL=https://api.clickpesa.com
+    CLICKPESA_CLIENT_ID=your_client_id
+    CLICKPESA_API_KEY=your_api_key
+    ```
+
+    <Note>
+      Replace the placeholder values with your actual credentials. Never hardcode credentials in source code or commit them to version control.
+    </Note>
+  </Step>
+
+  <Step title="Initialize the SDK">
+    Import `FintechSDK` and `ProviderType`, then create an instance with your provider and config:
+
+    ```typescript
+    import { FintechSDK, ProviderType } from 'finconnect';
+
+    const sdk = new FintechSDK({
+      provider: ProviderType.pesapal,
+      config: {
+        baseUrl: process.env.PESAPAL_BASE_URL!,
+        PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
+        PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,
+      }
+    });
+    ```
+
+    The SDK validates that all required config fields are present at construction time and will throw an error if any are missing.
+  </Step>
+
+  <Step title="Register an IPN endpoint and process a payment">
+    Register your IPN URL before submitting a payment so PesaPal knows where to send payment notifications:
+
+    ```typescript
+    // Register your IPN URL first
+    const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
+
+    // Then process a payment
+    const result = await sdk.pay({
+      id: 'ORD-2024-001',
+      currency: 'KES',
+      amount: 1000,
+      description: 'Order payment',
+      callback_url: 'https://yourapp.com/callback',
+      notification_id: ipnId,
+      billing_address: {
+        email_address: 'customer@example.com',
+        phone_number: '254712345678',
+        first_name: 'Jane',
+        last_name: 'Doe',
+      }
+    }, ipnId);
+
+    console.log(result);
+    ```
+
+    `sdk.pay()` authenticates with PesaPal, formats the payload, and submits the order request. The returned object contains the provider's response with order tracking details.
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="PesaPal guide" icon="credit-card" href="/guides/pesapal">
+    Full walkthrough for PesaPal integration with OAuth2 authentication.
+  </Card>
+  <Card title="ClickPesa guide" icon="money-bill-wave" href="/guides/clickpesa">
+    Initiate USSD push payments through ClickPesa with JWT auth.
+  </Card>
+</CardGroup>
