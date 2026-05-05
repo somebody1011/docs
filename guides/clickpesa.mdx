@@ -23,17 +23,16 @@ FinConnect's ClickPesa provider uses JWT authentication. Unlike PesaPal, ClickPe
     CLICKPESA_API_KEY=your_api_key
     ```
   </Step>
-
   <Step title="Initialize the SDK">
     Import `FintechSDK` and `ProviderType` from `finconnect`, then construct an instance using your credentials:
 
     ```typescript
-    import { FintechSDK, ProviderType } from 'finconnect';
+    import { FintechSDK } from 'finconnect';
     import dotenv from 'dotenv';
     dotenv.config();
-
+    
     const sdk = new FintechSDK({
-      provider: ProviderType.clickpesa,
+      provider: 'clickpesa',
       config: {
         baseUrl: process.env.CLICKPESA_BASE_URL!,
         CLICKPESA_CLIENT_ID: process.env.CLICKPESA_CLIENT_ID!,
@@ -42,7 +41,6 @@ FinConnect's ClickPesa provider uses JWT authentication. Unlike PesaPal, ClickPe
     });
     ```
   </Step>
-
   <Step title="Initiate a USSD push payment">
     Call `sdk.pay()` with the payment payload. ClickPesa accepts the raw payload directly — no `ipnId` is required.
 

@@ -26,17 +26,16 @@ FinConnect's PesaPal provider uses OAuth2 authentication. Before accepting payme
 
     The sandbox base URL is `https://cybqa.pesapal.com/pesapalv3`. You will swap this for the production URL when going live.
   </Step>
-
   <Step title="Initialize the SDK">
     Import `FintechSDK` and `ProviderType` from `finconnect`, then construct an instance using your credentials:
 
     ```typescript
-    import { FintechSDK, ProviderType } from 'finconnect';
+    import { FintechSDK } from 'finconnect';
     import dotenv from 'dotenv';
     dotenv.config();
-
+    
     const sdk = new FintechSDK({
-      provider: ProviderType.pesapal,
+      provider: 'pesapal',
       config: {
         baseUrl: process.env.PESAPAL_BASE_URL!,
         PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
@@ -45,7 +44,6 @@ FinConnect's PesaPal provider uses OAuth2 authentication. Before accepting payme
     });
     ```
   </Step>
-
   <Step title="Register your IPN URL">
     You must register your IPN URL before submitting a payment order. `registerIpn` authenticates with PesaPal and returns an `ipnId` that you pass to subsequent `pay()` calls.
 
@@ -58,7 +56,6 @@ FinConnect's PesaPal provider uses OAuth2 authentication. Before accepting payme
       The `ipnId` returned by `registerIpn` is passed both in the payload as `notification_id` and as the second argument to `pay()`. FinConnect handles merging it into the request automatically.
     </Note>
   </Step>
-
   <Step title="Submit a payment order">
     Call `sdk.pay()` with the order payload and the `ipnId` from the previous step:
 
@@ -80,7 +77,6 @@ FinConnect's PesaPal provider uses OAuth2 authentication. Before accepting payme
     console.log(result);
     ```
   </Step>
-
   <Step title="Handle the IPN callback">
     Set up an Express route to receive payment notifications from PesaPal. The route must be reachable at the URL you registered in step 3.
 

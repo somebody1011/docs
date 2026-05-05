@@ -17,7 +17,7 @@ PesaPal uses OAuth2. Before each request, the SDK calls `POST /api/Auth/RequestT
 **Credentials required:**
 
 | Credential | Config field |
-|---|---|
+| --- | --- |
 | Consumer key | `PESAPAL_CONSUMER_KEY` |
 | Consumer secret | `PESAPAL_CONSUMER_SECRET` |
 
@@ -51,7 +51,7 @@ ClickPesa uses JWT. Before each payment request, the SDK calls `POST /third-part
 **Credentials required:**
 
 | Credential | Config field |
-|---|---|
+| --- | --- |
 | Client ID | `CLICKPESA_CLIENT_ID` |
 | API key | `CLICKPESA_API_KEY` |
 
@@ -78,12 +78,12 @@ Authorization: <token>
 
 ```typescript
 import dotenv from 'dotenv';
-import { FintechSDK, ProviderType } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 dotenv.config();
 
 const sdk = new FintechSDK({
-  provider: ProviderType.pesapal,
+  provider: 'pesapal',
   config: {
     baseUrl: process.env.PESAPAL_BASE_URL!,
     PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,

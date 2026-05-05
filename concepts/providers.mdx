@@ -11,7 +11,7 @@ FinConnect uses a provider model where each supported payment platform (PesaPal,
 FinConnect exposes a `ProviderType` enum with a value for each supported provider. When you construct a `FintechSDK` instance, it passes your chosen provider type and config to `ProviderFactory.createProvider()`, which validates your config and returns the appropriate provider instance. `FintechSDK` stores this internally as `gateway` and delegates all method calls to it.
 
 ```typescript
-export enum ProviderType {
+enum ProviderType {
   clickpesa = 'clickpesa',
   pesapal  = 'pesapal',
 }
@@ -19,14 +19,14 @@ export enum ProviderType {
 
 `ProviderFactory.createProvider()` validates that all required config fields are present before instantiating a provider. If you pass an unrecognized provider string, it throws:
 
-```
+```text
 Unsupported provider type: <your value>
 ```
 
 ## Provider comparison
 
 | Provider | Auth mechanism | Push payment | IPN support | Region |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | PesaPal | OAuth2 (Bearer token) | USSD push | Yes | East Africa |
 | ClickPesa | JWT | USSD push | No (throws error) | East Africa |
 | AzamPay | Bearer/Secret | Planned | Planned | Tanzania |
@@ -40,11 +40,11 @@ Unsupported provider type: <your value>
 Pass a `ProviderType` value and the matching config object to `FintechSDK`:
 
 ```typescript
-import { FintechSDK, ProviderType } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 // Use PesaPal
 const pesapalSDK = new FintechSDK({
-  provider: ProviderType.pesapal,
+  provider: 'pesapal',
   config: { /* PesaPal config */ }
 });
 
@@ -62,14 +62,14 @@ Each provider validates its own required fields at construction time and throws 
 <Tabs>
   <Tab title="PesaPal">
     | Field | Description |
-    |---|---|
+    | --- | --- |
     | `baseUrl` | Base URL for the PesaPal API (sandbox or production) |
     | `PESAPAL_CONSUMER_KEY` | Your PesaPal consumer key |
     | `PESAPAL_CONSUMER_SECRET` | Your PesaPal consumer secret |
 
     ```typescript
     const sdk = new FintechSDK({
-      provider: ProviderType.pesapal,
+      provider: 'pesapal',
       config: {
         baseUrl: 'https://cybqa.pesapal.com/pesapalv3',
         PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
@@ -80,7 +80,7 @@ Each provider validates its own required fields at construction time and throws 
   </Tab>
   <Tab title="ClickPesa">
     | Field | Description |
-    |---|---|
+    | --- | --- |
     | `baseUrl` | Base URL for the ClickPesa API |
     | `CLICKPESA_CLIENT_ID` | Your ClickPesa client ID |
     | `CLICKPESA_API_KEY` | Your ClickPesa API key |

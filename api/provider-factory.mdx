@@ -33,7 +33,7 @@ Validates the supplied config and returns an instantiated provider. The provider
 ### Required config fields
 
 | Field | PesaPal | ClickPesa |
-|---|---|---|
+| --- | --- | --- |
 | `baseUrl` | Required | Required |
 | `PESAPAL_CONSUMER_KEY` | Required | — |
 | `PESAPAL_CONSUMER_SECRET` | Required | — |
@@ -43,9 +43,9 @@ Validates the supplied config and returns an instantiated provider. The provider
 ### Example (direct use)
 
 ```typescript
-import { ProviderFactory, ProviderType } from 'finconnect';
+import { ProviderFactory } from 'finconnect';
 
-const provider = ProviderFactory.createProvider(ProviderType.pesapal, {
+const provider = ProviderFactory.createProvider('pesapal', {
   baseUrl: process.env.PESAPAL_BASE_URL!,
   PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
   PESAPAL_CONSUMER_SECRET: process.env.PESAPAL_CONSUMER_SECRET!,

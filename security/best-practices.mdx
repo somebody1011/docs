@@ -14,7 +14,7 @@ Hardcoding credentials directly in your source code exposes them to anyone who c
 
 ```typescript Bad — never do this
 const sdk = new FintechSDK({
-  provider: ProviderType.pesapal,
+  provider: 'pesapal',
   config: {
     baseUrl: 'https://cybqa.pesapal.com/pesapalv3',
     PESAPAL_CONSUMER_KEY: 'abc123',       // hardcoded!
@@ -51,6 +51,7 @@ Keep a `.env.sandbox` and `.env.production` (both git-ignored) and load the appr
 Never run FinConnect in browser or client-side code. The SDK requires your provider credentials (`PESAPAL_CONSUMER_KEY`, `CLICKPESA_API_KEY`, etc.) to make authenticated requests. Bundling the SDK into a frontend application exposes those credentials to every visitor.
 
 Use FinConnect exclusively in:
+
 - Node.js API servers
 - Serverless functions (AWS Lambda, Vercel Edge Functions, etc.)
 - Backend workers
@@ -80,6 +81,7 @@ try {
 The SDK passes your payload directly to the provider API. Validating inputs before calling `sdk.pay()` prevents malformed requests and reduces exposure to injection-style attacks.
 
 At a minimum, validate:
+
 - Phone number matches the expected format for the target country
 - Amount is a positive number greater than zero
 - Reference/order ID is non-empty
@@ -110,9 +112,9 @@ All FinConnect requests to provider APIs are made over HTTPS. You must also ensu
 
 Before going live, confirm all of the following:
 
-- [ ] All credentials are stored in environment variables
-- [ ] `.env` files are excluded from git (listed in `.gitignore`)
-- [ ] Separate credentials are configured for sandbox and production
-- [ ] IPN URL is HTTPS and publicly accessible
-- [ ] Errors are logged server-side and not exposed to end users
-- [ ] Input validation is in place before calling `sdk.pay()`
+- All credentials are stored in environment variables
+- `.env` files are excluded from git (listed in `.gitignore`)
+- Separate credentials are configured for sandbox and production
+- IPN URL is HTTPS and publicly accessible
+- Errors are logged server-side and not exposed to end users
+- Input validation is in place before calling `sdk.pay()`

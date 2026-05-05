@@ -22,7 +22,6 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
     npm install
     ```
   </Step>
-
   <Step title="Configure environment variables">
     Create a `.env` file in your project root and add your provider credentials:
 
@@ -31,7 +30,7 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
     PESAPAL_BASE_URL=https://cybqa.pesapal.com/pesapalv3
     PESAPAL_CONSUMER_KEY=your_consumer_key
     PESAPAL_CONSUMER_SECRET=your_consumer_secret
-
+    
     # ClickPesa
     CLICKPESA_BASE_URL=https://api.clickpesa.com
     CLICKPESA_CLIENT_ID=your_client_id
@@ -42,15 +41,14 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
       Replace the placeholder values with your actual credentials. Never hardcode credentials in source code or commit them to version control.
     </Note>
   </Step>
-
   <Step title="Initialize the SDK">
     Import `FintechSDK` and `ProviderType`, then create an instance with your provider and config:
 
     ```typescript
-    import { FintechSDK, ProviderType } from 'finconnect';
-
+    import { FintechSDK } from 'finconnect';
+    
     const sdk = new FintechSDK({
-      provider: ProviderType.pesapal,
+      provider: 'pesapal',
       config: {
         baseUrl: process.env.PESAPAL_BASE_URL!,
         PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
@@ -61,14 +59,13 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
 
     The SDK validates that all required config fields are present at construction time and will throw an error if any are missing.
   </Step>
-
   <Step title="Register an IPN endpoint and process a payment">
     Register your IPN URL before submitting a payment so PesaPal knows where to send payment notifications:
 
     ```typescript
     // Register your IPN URL first
     const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
-
+    
     // Then process a payment
     const result = await sdk.pay({
       id: 'ORD-2024-001',
@@ -84,7 +81,7 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
         last_name: 'Doe',
       }
     }, ipnId);
-
+    
     console.log(result);
     ```
 
@@ -98,6 +95,7 @@ By the end of this guide you will have FinConnect installed, a PesaPal provider 
   <Card title="PesaPal guide" icon="credit-card" href="/guides/pesapal">
     Full walkthrough for PesaPal integration with OAuth2 authentication.
   </Card>
+
   <Card title="ClickPesa guide" icon="money-bill-wave" href="/guides/clickpesa">
     Initiate USSD push payments through ClickPesa with JWT auth.
   </Card>

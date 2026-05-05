@@ -23,10 +23,10 @@ new FintechSDK(options: { provider: ProviderType | string; config: any })
 **Throws:** `"Invalid configuration: Missing required fields for [Provider]"` if any required config fields are absent.
 
 ```typescript
-import { FintechSDK, ProviderType } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 const sdk = new FintechSDK({
-  provider: ProviderType.pesapal,
+  provider: 'pesapal',
   config: {
     baseUrl: process.env.PESAPAL_BASE_URL!,
     PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
@@ -62,7 +62,7 @@ Initiates a USSD push payment. For PesaPal, the `ipnId` is merged into the paylo
     ```typescript
     // Register IPN once (e.g. at startup) and reuse the ID
     const ipnId = await sdk.registerIpn('https://yourapp.com/ipn', 'GET');
-
+    
     const result = await sdk.pay(
       {
         id: 'ORDER-001',
@@ -76,7 +76,7 @@ Initiates a USSD push payment. For PesaPal, the `ipnId` is merged into the paylo
       },
       ipnId
     );
-
+    
     console.log(result);
     ```
   </Tab>
@@ -88,7 +88,7 @@ Initiates a USSD push payment. For PesaPal, the `ipnId` is merged into the paylo
       externalId: 'ORDER-001',
       phoneNumber: '255712345678',
     });
-
+    
     console.log(result);
     ```
   </Tab>

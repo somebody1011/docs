@@ -33,16 +33,16 @@ Add `.env` to your `.gitignore` so credentials are never committed to version co
 Pass these fields in the `config` object when initializing with `ProviderType.pesapal`:
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| --- | --- | --- | --- |
 | `baseUrl` | `string` | Yes | Base URL for the PesaPal API. Use the sandbox URL during development and the production URL when going live. |
 | `PESAPAL_CONSUMER_KEY` | `string` | Yes | Your PesaPal consumer key, obtained from the PesaPal merchant portal. |
 | `PESAPAL_CONSUMER_SECRET` | `string` | Yes | Your PesaPal consumer secret, obtained from the PesaPal merchant portal. |
 
 ```typescript
-import { FintechSDK, ProviderType } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 const sdk = new FintechSDK({
-  provider: ProviderType.pesapal,
+  provider: 'pesapal',
   config: {
     baseUrl: process.env.PESAPAL_BASE_URL!,
     PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
@@ -56,16 +56,16 @@ const sdk = new FintechSDK({
 Pass these fields in the `config` object when initializing with `ProviderType.clickpesa`:
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| --- | --- | --- | --- |
 | `baseUrl` | `string` | Yes | Base URL for the ClickPesa API. |
 | `CLICKPESA_CLIENT_ID` | `string` | Yes | Your ClickPesa client ID, used as the `client-id` header during authentication. |
 | `CLICKPESA_API_KEY` | `string` | Yes | Your ClickPesa API key, used as the `api-key` header during authentication. |
 
 ```typescript
-import { FintechSDK, ProviderType } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 const sdk = new FintechSDK({
-  provider: ProviderType.clickpesa,
+  provider: 'clickpesa',
   config: {
     baseUrl: process.env.CLICKPESA_BASE_URL!,
     CLICKPESA_CLIENT_ID: process.env.CLICKPESA_CLIENT_ID!,
@@ -79,7 +79,7 @@ const sdk = new FintechSDK({
 You switch between sandbox and production by changing `baseUrl`. No other code changes are needed.
 
 | Provider | Sandbox URL | Production URL |
-|----------|-------------|----------------|
+| --- | --- | --- |
 | PesaPal | `https://cybqa.pesapal.com/pesapalv3` | Provided by PesaPal on account approval |
 | ClickPesa | Provided by ClickPesa | Provided by ClickPesa |
 
@@ -87,11 +87,15 @@ You switch between sandbox and production by changing `baseUrl`. No other code c
   The SDK does not enforce which URL you use — passing a production URL in development will make real charges. Always verify your `baseUrl` before running payment flows.
 </Warning>
 
+<Warning>
+  The SDK is now using sandboxed URL
+</Warning>
+
 ## Validation
 
 `ProviderFactory` validates that all required config fields are present before instantiating a provider. If any field is missing, the constructor throws immediately with a descriptive error:
 
-```
+```text
 Error: Invalid configuration: Missing required fields for Pesapal.
 ```
 
