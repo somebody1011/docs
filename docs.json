@@ -56,13 +56,13 @@
           {
             "group": "SDK",
             "pages": [
-              "api/fintech-sdk",
-              "api/base-provider"
+              "api/fintech-sdk"
             ]
           },
           {
             "group": "Providers",
             "pages": [
+              "api/base-provider",
               "api/pesapal-provider",
               "api/clickpesa-provider"
             ]

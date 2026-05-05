@@ -57,10 +57,10 @@ app.get('/ipn', (req, res) => {
 The full flow is: register the IPN URL, capture the returned `ipnId`, then pass it to `pay()`. FinConnect merges the `ipnId` into the request payload as `notification_id` automatically.
 
 ```typescript
-import {  } from 'finconnect';
+import { FintechSDK } from 'finconnect';
 
 const sdk = new FintechSDK({
-  provider: ,
+  provider: 'pesapal',
   config: {
     baseUrl: process.env.PESAPAL_BASE_URL!,
     PESAPAL_CONSUMER_KEY: process.env.PESAPAL_CONSUMER_KEY!,
