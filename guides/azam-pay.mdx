@@ -1,0 +1,68 @@
+---
+title: "AzamPay"
+---
+
+FinConnect's Azampay provider uses JWT authentication. Unlike PesaPal, does not require IPN registration before initiating payments — you can call `sdk.pay()` directly with the payment payload.
+
+## Prerequisites
+
+- Azampay  appName 
+- A consumer ID and API key from the Azampay dashboard
+
+## Integration steps
+
+<Steps>
+  <Step title="Configure credentials">
+    Add the following environment variables to your `.env` file:
+
+    ```env
+    AZAMPAY_BASE_URL=https://api.clickpesa.com
+    AZAMPAY_CONSUMER_KEY=your_client_id
+    AZAMPAY_CONSUMER_SECRET=your_api_key
+    ```
+  </Step>
+  <Step title="Initialize the SDK">
+    Import `FintechSDK` and `ProviderType` from `finconnect`, then construct an instance using your credentials:
+
+    ```typescript
+    import { FintechSDK } from 'finconnect';
+    import dotenv from 'dotenv';
+    dotenv.config();
+    
+    const sdk = new FintechSDK({
+      provider: 'azampay',
+      config: {
+        baseUrl: process.env.AZAMPAY_BASE_URL,
+        AZAMPAY_APP_NAME: process.env.AZAMPAY_APP_NAME,
+        AZAMPAY_CONSUMER_KEY: process.env.AZAMPAY_CLIENT_ID,
+        AZAMPAY_CONSUMER_SECRET: process.env.AZAMPAY_API_KEY
+      }
+    });
+    ```
+  </Step>
+  <Step title="Initiate a USSD push payment">
+    Call `sdk.pay()` with the payment payload. ClickPesa accepts the raw payload directly — no `ipnId` is required.
+
+    ```typescript
+    const result = await sdk.pay({
+      accountNumber: "accountNumber",
+      amount: 0,
+      currency: "currency",
+      externalId: "externalId",
+      provider: "Airtel",
+      additionalProperties: {
+          key: {}
+        }
+    }
+    );
+    ```
+
+    <Note>
+      FinConnect automatically authenticates with Azampay via JWT before each payment call. Token management is handled internally — you do not need to call `authenticate()` yourself.
+    </Note>
+  </Step>
+</Steps>
+
+<Warning>
+  Calling `registerIpn()` with ClickPesa will throw an error — IPN registration is not supported by this provider. Remove any `registerIpn()` calls from your Azampay integration.
+</Warning>

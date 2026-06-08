@@ -1,20 +1,23 @@
 ---
 title: "Payment providers in FinConnect"
-description: "Understand how FinConnect abstracts PesaPal and ClickPesa behind one interface, and learn what config each provider requires and how provider selection works."
+description: "Understand how FinConnect abstracts PesaPal ,ClickPesa and Azampay behind one interface, and learn what config each provider requires and how provider selection works."
 sidebarTitle: "Providers"
 ---
 
-FinConnect uses a provider model where each supported payment platform (PesaPal, ClickPesa) is wrapped in a provider class that implements a common interface. You pick a provider at initialization and the SDK handles the rest — authentication, request formatting, and response parsing all happen under the hood.
+FinConnect uses a provider model where each supported payment platform (PesaPal, ClickPesa,Azampay) is wrapped in a provider class that implements a common interface. You pick a provider at initialization and the SDK handles the rest — authentication, request formatting, and response parsing all happen under the hood.
 
 ## How providers work
 
-FinConnect exposes a `ProviderType` enum with a value for each supported provider. When you construct a `FintechSDK` instance, it passes your chosen provider type and config to `ProviderFactory.createProvider()`, which validates your config and returns the appropriate provider instance. `FintechSDK` stores this internally as `gateway` and delegates all method calls to it.
+FinConnect exposes a `ProviderType` enum-like values for each supported provider. When you construct a `FintechSDK` instance, it passes your chosen provider type and config to `ProviderFactory.createProvider()`, which validates your config and returns the appropriate provider instance. `FintechSDK` stores this internally as `gateway` and delegates all method calls to it.
 
 ```typescript
-enum ProviderType {
-  clickpesa = 'clickpesa',
-  pesapal  = 'pesapal',
-}
+export const ProviderType = {
+  clickpesa: 'clickpesa',
+  pesapal: 'pesapal',
+  azampay: 'azampay',
+} as const;
+
+export type ProviderType = typeof ProviderType[keyof typeof ProviderType];
 ```
 
 `ProviderFactory.createProvider()` validates that all required config fields are present before instantiating a provider. If you pass an unrecognized provider string, it throws:
@@ -29,7 +32,7 @@ Unsupported provider type: <your value>
 | --- | --- | --- | --- | --- |
 | PesaPal | OAuth2 (Bearer token) | USSD push | Yes | East Africa |
 | ClickPesa | JWT | USSD push | No (throws error) | East Africa |
-| AzamPay | Bearer/Secret | Planned | Planned | Tanzania |
+| AzamPay | JWT | USSD push | No(throws error) | Tanzania |
 
 <Note>
   `registerIpn()` on ClickPesa (and any provider that does not override the base implementation) throws `"IPN registration not supported by this provider"`.
@@ -50,8 +53,14 @@ const pesapalSDK = new FintechSDK({
 
 // Use ClickPesa
 const clickpesaSDK = new FintechSDK({
-  provider: ProviderType.clickpesa,
+  provider: 'clickpesa',
   config: { /* ClickPesa config */ }
+});
+
+// Use Azampay
+const azampaySDK = new FintechSDK({
+  provider: 'azampay',
+  config: { /* Azampay config */ }
 });
 ```
 
@@ -87,11 +96,31 @@ Each provider validates its own required fields at construction time and throws 
 
     ```typescript
     const sdk = new FintechSDK({
-      provider: ProviderType.clickpesa,
+      provider: 'clickpesa',
       config: {
         baseUrl: 'https://api.clickpesa.com',
         CLICKPESA_CLIENT_ID: process.env.CLICKPESA_CLIENT_ID!,
         CLICKPESA_API_KEY: process.env.CLICKPESA_API_KEY!,
+      }
+    });
+    ```
+  </Tab>
+  <Tab title="AzamPay">
+    | Field | Description |
+    | --- | --- |
+    | `baseUrl` | Base URL for the azampay API |
+    | `AZAMPAY_APPNAME` | Your Azamapay appName |
+    | `AZAMPAY_CONSUMER_KEY` | Your Azampay clientId |
+    | `AZAMPAY_CONSUMER_SECRET` | Your  Azamapay clientSecret |
+
+    ```typescript
+    const sdk = new FintechSDK({
+      provider: 'azampay',
+      config: {
+        baseUrl: process.env.AZAMPAY_BASE_URL,
+        AZAMPAY_APP_NAME: process.env.AZAMPAY_APP_NAME,
+        AZAMPAY_CONSUMER_KEY: process.env.AZAMPAY_CLIENT_ID,
+        AZAMPAY_CONSUMER_SECRET: process.env.AZAMPAY_API_KEY
       }
     });
     ```

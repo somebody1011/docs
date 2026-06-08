@@ -92,6 +92,22 @@ Initiates a USSD push payment. For PesaPal, the `ipnId` is merged into the paylo
     console.log(result);
     ```
   </Tab>
+  <Tab title="AzamPay">
+    ```typescript
+      const result = await sdk.pay({
+          accountNumber: "accountNumber",
+          amount: 0,
+          currency: "currency",
+          externalId: "externalId",
+          provider: "Airtel",
+          additionalProperties: {
+              key: {}
+            }
+        });
+      console.log(result)
+    
+    ```
+  </Tab>
 </Tabs>
 
 ---

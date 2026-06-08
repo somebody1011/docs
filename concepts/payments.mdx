@@ -39,6 +39,7 @@ The `ipnId` parameter behaves differently per provider:
 
 - **PesaPal** — `ipnId` is required. The SDK merges it into the payload as `notification_id` before submitting to `POST /api/Transactions/SubmitOrderRequest`.
 - **ClickPesa** — `ipnId` is ignored. The raw `paymentData` object is sent directly to `POST /third-parties/payments/initiate-ussd-push-request`.
+- **AzamPay** — `ipnId` is ignored. The raw `paymentData` object is sent directly to `POST /azampay/mno/checkout`.
 
 <Warning>
   For PesaPal payments, you must register an IPN URL first and include the returned `ipnId`. Omitting it means PesaPal has nowhere to send payment status callbacks.
@@ -65,7 +66,7 @@ const ipnId = await sdk.registerIpn(
 
     ```typescript
     const ipnId = await sdk.registerIpn('https://yourdomain.com/webhooks/pesapal', 'POST');
-
+    
     const result = await sdk.pay(
       {
         id: 'ORDER-001',
@@ -85,7 +86,7 @@ const ipnId = await sdk.registerIpn(
     );
     ```
 
-    The final request body sent to PesaPal includes all fields above plus `notification_id: ipnId`.
+    The final request body sent to PesaPal includes all fields above, plus `notification_id: ipnId`.
   </Tab>
   <Tab title="ClickPesa">
     The raw payload is sent directly to `POST /third-parties/payments/initiate-ussd-push-request` with the JWT in the `Authorization` header:
@@ -102,6 +103,27 @@ const ipnId = await sdk.registerIpn(
 
     <Note>
       ClickPesa does not support IPN registration. The `ipnId` argument is ignored and the base `registerIpn()` throws `"IPN registration not supported by this provider"`.
+    </Note>
+  </Tab>
+  <Tab title="AzamPay">
+    The raw payload is sent directly to `POST /azampay/mno/checkout` with the JWT in the `Authorization` header:
+
+    ```typescript
+    const result = await sdk.pay({
+      accountNumber: "accountNumber",
+      amount: 0,
+      currency: "currency",
+      externalId: "externalId",
+      provider: "Airtel",
+      additionalProperties: {
+          key: {}
+        }
+    }
+    );
+    ```
+
+    <Note>
+      ` additionalProperties`  field is optional
     </Note>
   </Tab>
 </Tabs>

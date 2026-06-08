@@ -74,6 +74,31 @@ const sdk = new FintechSDK({
 });
 ```
 
+## Azampay configuration
+
+Pass these fields in the `config` object when initializing with `ProviderType.azampay`:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `baseUrl` | `string` | Yes | Base URL for the Azampay API. |
+| `AZAMPAY_APP_NAME` | ` string` | Yes | your Azampay app name, used as `appName` header during authentication |
+| `AZAMPAY_CLIENT_ID` | `string` | Yes | Your Azampay client ID, used as the `clientId` header during authentication. |
+| `AZAMPAY_API_KEY` | `string` | Yes | Your ClickPesa API key, used as the `clientSecret` header during authentication. |
+
+```typescript
+import { FintechSDK } from 'finconnect';
+
+const sdk = new FintechSDK({
+  provider: 'azampay',
+  config: {
+    baseUrl: process.env.AZAMPAY_BASE_URL,
+    AZAMPAY_APP_NAME: process.env.AZAMPAY_APP_NAME,
+    AZAMPAY_CONSUMER_KEY: process.env.AZAMPAY_CLIENT_ID,
+    AZAMPAY_CONSUMER_SECRET: process.env.AZAMPAY_API_KEY
+  }
+});
+```
+
 ## Sandbox vs. production
 
 You switch between sandbox and production by changing `baseUrl`. No other code changes are needed.
@@ -81,7 +106,8 @@ You switch between sandbox and production by changing `baseUrl`. No other code c
 | Provider | Sandbox URL | Production URL |
 | --- | --- | --- |
 | PesaPal | `https://cybqa.pesapal.com/pesapalv3` | Provided by PesaPal on account approval |
-| ClickPesa | Provided by ClickPesa | Provided by ClickPesa |
+| ClickPesa | ` https://api.clickpesa.com` | Provided by ClickPesa |
+| Azampay | ` https://sandbox.azampay.co.tz` | Provided by Azampay |
 
 <Warning>
   The SDK does not enforce which URL you use — passing a production URL in development will make real charges. Always verify your `baseUrl` before running payment flows.
@@ -89,6 +115,10 @@ You switch between sandbox and production by changing `baseUrl`. No other code c
 
 <Warning>
   The SDK is now using sandboxed URL
+</Warning>
+
+<Warning>
+  Azampay's authentication method now uses the sandbox token generator
 </Warning>
 
 ## Validation
