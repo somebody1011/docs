@@ -21,7 +21,7 @@
           },
           {
             "group": "Guides",
-            "pages": ["guides/pesapal", "guides/clickpesa", "guides/ipn-webhooks", "guides/error-handling"]
+            "pages": ["guides/pesapal", "guides/clickpesa", "guides/azampay", "guides/ipn-webhooks", "guides/error-handling"]
           },
           {
             "group": "Security",
@@ -38,7 +38,7 @@
           },
           {
             "group": "Providers",
-            "pages": ["api/pesapal-provider", "api/clickpesa-provider"]
+            "pages": ["api/pesapal-provider", "api/clickpesa-provider", "api/azampay"]
           }
         ]
       }
@@ -60,8 +60,13 @@
     "PesapalProvider.authenticate()",
     "PesapalProvider.registerIpn()",
     "PesapalProvider.initiateUssdPushRequest()",
+    "PesapalProvider.checkPaymentStatus()",
     "ClickpesaProvider.authenticate()",
     "ClickpesaProvider.initiateUssdPushRequest()",
-    "ProviderType enum (clickpesa, pesapal)"
+    "ClickpesaProvider.checkPaymentStatus()",
+    "AzampayProvider.authenticate()",
+    "AzampayProvider.initiateUssdPushRequest()",
+    "AzampayProvider.handleCallback()",
+    "ProviderType enum (clickpesa, pesapal,azampay)"
   ]
 }

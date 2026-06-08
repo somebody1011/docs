@@ -1,0 +1,61 @@
+`AzampayProvider` implements the FinConnect provider interface for Azampay, handling JWT token generation and USSD push payment initiation via Azampay's  API.
+
+## `authenticate()`
+
+```typescript
+async authenticate(): Promise<string>
+```
+
+Generates a JWT token from Azampay's token endpoint using your appName client ID and client secret key. This is called automatically before each payment request — you do not need to call it directly.
+
+**Endpoint:** ` POST` `https://authenticator-sandbox.azampay.co.tz/AppRegistration/GenerateToken`
+
+<Warning>
+  This endpoint is used to generate token for sandbox application
+</Warning>
+
+**Headers:** ` Content-Type:application.json`
+
+**Request body:**
+
+```JSON
+  'appName': <AZAMPAY_APP_NAME>,
+  'clientId': <AZAMPAY_CONSUMER_KEY>,
+  'clientSecret': <AZAMPAY_CONSUMER_SECRET>,
+```
+
+**Returns:** JWT token string (`response.data.data.accessToken`).
+
+**Throws:** `"Authentication failed: ..."` if the request fails.
+
+---
+
+## `initiateUssdPushRequest()`
+
+```typescript
+async initiateUssdPushRequest(payload: any): Promise<any>
+```
+
+Sends a USSD push payment request to ClickPesa with the raw payload. Unlike PesaPal, no payload transformation is applied — the object you pass to `sdk.pay()` is sent directly.
+
+**Endpoint:** `POST {baseUrl}/azampay/mno/checkout`
+
+**Request body:** The raw `payload` object.
+
+**Headers:** `Authorization: <token>`
+
+**Returns:** Azampay payment response object.
+
+**Throws:** `"Payment request failed: ..."` if the request fails.
+
+---
+
+## `handleCallback()`
+
+After the USSD push is initiated, payment events are going to be updated by azampay through a webhook, which notifies your app of the event.
+
+---
+
+<Note>
+  Use `FintechSDK.pay()` rather than calling `ClickpesaProvider` directly. Token generation and request normalisation are handled internally.
+</Note>

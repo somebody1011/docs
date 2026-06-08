@@ -40,7 +40,7 @@
             "pages": [
               "guides/pesapal",
               "guides/clickpesa",
-              "guides/azam-pay",
+              "guides/azampay",
               "guides/ipn-webhooks",
               "guides/error-handling"
             ]
