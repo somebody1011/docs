@@ -65,7 +65,8 @@
             "pages": [
               "api/base-provider",
               "api/pesapal-provider",
-              "api/clickpesa-provider"
+              "api/clickpesa-provider",
+              "api/azampay-provider"
             ]
           }
         ]
