@@ -1,3 +1,9 @@
+---
+title: "azampay-provider"
+description: "Reference for AzampayProvider: JWT token generation via authenticate() and USSD push payment initiation via initiateUssdPushRequest() for  Azampay."
+sidebarTitle: "azampayProvider"
+---
+
 `AzampayProvider` implements the FinConnect provider interface for Azampay, handling JWT token generation and USSD push payment initiation via Azampay's  API.
 
 ## `authenticate()`
@@ -54,7 +60,7 @@ Sends a USSD push payment request to ClickPesa with the raw payload. Unlike Pesa
 
 This method fetches the public key provided by azampay it is used to verify webhook cllas signature.
 
-```typescript https://githubusercontent.com
+```typescript https://github.com/somebody1011/finconnect.git
 // Mintlify pulls your live AzamPay file here!
 ```
 
@@ -64,7 +70,7 @@ This method fetches the public key provided by azampay it is used to verify webh
 
 After the USSD push is initiated, payment events are going to be updated by azampay through a webhook, which notifies your app of the event.
 
-```typescript https://githubusercontent.com
+```typescript https://github.com/somebody1011/finconnect.git
 // Mintlify pulls your live AzamPay file here!
 ```
 
